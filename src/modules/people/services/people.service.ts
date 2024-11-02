@@ -1,9 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { HttpAdapterHost } from '@nestjs/core';
 import { isEmpty, isNil } from 'lodash';
 import { CacheManagerService } from 'src/modules/cache/cache-manager.service';
 import { arrayFromRange } from 'src/modules/common/utils/array-from-range';
 import { standardizeUrl } from 'src/modules/common/utils/standardize-url';
 import { CachedHttpService } from 'src/modules/http/cached-http.service';
+import { GET_APP_URL } from 'src/setup/global-constants';
 import { MAPPED_PERSON_CACHE_KEY } from '../constants/mapped-person-cache-keys.constants';
 import { ApiResponse } from '../interfaces/api-response.interface';
 import { MappedFilm } from '../interfaces/mapped-film.interface';
@@ -20,8 +22,9 @@ export class PeopleService {
   private readonly logger = new Logger(PeopleService.name);
 
   constructor(
-    private cacheManagerService: CacheManagerService,
+    private readonly cacheManagerService: CacheManagerService,
     private readonly cachedHttpService: CachedHttpService,
+    private readonly adapterHost: HttpAdapterHost,
   ) { }
 
   async getPeople({ search }: { search?: string }): Promise<MappedPerson[]> {
@@ -98,23 +101,16 @@ export class PeopleService {
         if (!isNil(mappedPersonFromCache)) {
           return mappedPersonFromCache;
         }
-        const { data: arrayBuffer } = await this.cachedHttpService.get<string>(
-          `${ROBOHASH_API_BASE_URL}/${id}`,
-          {
-            useCache: false, // NOTE: for images, we don't want to use cache, since every image is unique to each person
-            responseType: 'arraybuffer',
-          },
-        );
-        const base64Image = Buffer.from(arrayBuffer)
-          .toString('base64')
-          .slice(0, 10); //NOTE: take first 10 characters to make response more readable
+        const appUrl = GET_APP_URL()
+
+        const image = new URL(`public/static/assets/img/people/${id}.jpg`, appUrl,).href;
 
         const starships: MappedStarship[] = await this.getStarships({
           swStarshipUrls: swPerson.starships,
         });
 
         // NOTE: Also added films in order to showcase modularity of existing code
-        // const films: MappedFilm[] = await this.getFilms({ swFilmUrls: swPerson.films });
+        const films: MappedFilm[] = await this.getFilms({ swFilmUrls: swPerson.films });
 
         const { name, height, mass, gender } = swPerson;
 
@@ -125,8 +121,8 @@ export class PeopleService {
           mass,
           gender,
           starships,
-          // films,
-          image: base64Image,
+          films,
+          image,
         };
         await this.cacheManagerService.set(cacheKey, mappedPerson);
         return mappedPerson;
