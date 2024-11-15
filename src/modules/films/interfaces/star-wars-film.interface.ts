@@ -3,4 +3,5 @@ export interface StarWarsFilm {
   director: string;
   producer: string;
   release_date: string;
+  url: string;
 }

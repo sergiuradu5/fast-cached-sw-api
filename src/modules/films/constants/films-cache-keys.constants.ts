@@ -1,0 +1,1 @@
+export const MAPPED_FILM_CACHE_KEY = 'mapped-film';

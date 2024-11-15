@@ -1,4 +1,4 @@
-import { MappedFilm } from './mapped-film.interface';
+import { MappedFilm } from '../../films/interfaces/mapped-film.interface';
 import { MappedStarship } from './mapped-starship.interface';
 
 export interface MappedPerson {

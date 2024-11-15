@@ -12,7 +12,7 @@ export class PeopleController {
   // NOTE: use @UseInterceptors(CacheInterceptor) and @CacheTTL() if you want to cache the response
   // If you want to see how the internal caching system works, leave @UseInterceptors(CacheInterceptor) commented out
   @UseInterceptors(CacheInterceptor)
-  @CacheTTL(60)
+  @CacheTTL(60 * 1000)
   async getPeople(
     @Query(new ValidationPipe()) query: GetPeopleRequestQueryDto,
   ) {

@@ -1,22 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { HttpAdapterHost } from '@nestjs/core';
 import { isEmpty, isNil } from 'lodash';
 import { CacheManagerService } from 'src/modules/cache/cache-manager.service';
 import { arrayFromRange } from 'src/modules/common/utils/array-from-range';
-import { standardizeUrl } from 'src/modules/common/utils/standardize-url';
+import { getLastParamFromUrl } from 'src/modules/common/utils/get-last-param-from-url';
 import { CachedHttpService } from 'src/modules/http/cached-http.service';
 import { GET_APP_URL } from 'src/setup/global-constants';
-import { MAPPED_PERSON_CACHE_KEY } from '../constants/mapped-person-cache-keys.constants';
+import { MappedFilm } from '../../films/interfaces/mapped-film.interface';
+import { StarWarsFilm } from '../../films/interfaces/star-wars-film.interface';
+import { MAPPED_PERSON_CACHE_KEY } from '../constants/people-cache-keys.constants';
 import { ApiResponse } from '../interfaces/api-response.interface';
-import { MappedFilm } from '../interfaces/mapped-film.interface';
 import { MappedPerson } from '../interfaces/mapped-person.interface';
 import { MappedStarship } from '../interfaces/mapped-starship.interface';
-import { StarWarsFilm } from '../interfaces/star-wars-film.interface';
 import { StarWarsStarship } from '../interfaces/star-wars-starship.interface';
 import { StarWarsPerson } from './../interfaces/star-wars-person.interface';
-
-const SW_API_BASE_URL = 'https://swapi.dev/api/people/';
-const ROBOHASH_API_BASE_URL = 'https://robohash.org/';
 @Injectable()
 export class PeopleService {
   private readonly logger = new Logger(PeopleService.name);
@@ -24,11 +20,10 @@ export class PeopleService {
   constructor(
     private readonly cacheManagerService: CacheManagerService,
     private readonly cachedHttpService: CachedHttpService,
-    private readonly adapterHost: HttpAdapterHost,
   ) { }
 
   async getPeople({ search }: { search?: string }): Promise<MappedPerson[]> {
-    const swApiFirstPageUrl = new URL(SW_API_BASE_URL);
+    const swApiFirstPageUrl = new URL('people', process.env.SW_API_BASE_URL);
     if (!isEmpty(search)) {
       swApiFirstPageUrl.searchParams.append('search', search);
     }
@@ -54,7 +49,7 @@ export class PeopleService {
       const totalPages = Math.ceil(count / resultsPerPage);
       const pagesArray = arrayFromRange(2, totalPages);
       const restOfPagesPromises = pagesArray.map(async (page) => {
-        const swApiCurrentPageUrl = new URL(SW_API_BASE_URL);
+        const swApiCurrentPageUrl = new URL('people', process.env.SW_API_BASE_URL);
         if (!isEmpty(search)) {
           swApiCurrentPageUrl.searchParams.append('search', search);
         }
@@ -94,7 +89,7 @@ export class PeopleService {
   }): Promise<MappedPerson[]> {
     const mappedPeople = await Promise.all(
       swPeople.map(async (swPerson) => {
-        const id = this.getIdFromUrl(swPerson.url);
+        const id = getLastParamFromUrl(swPerson.url);
         const cacheKey = this.getMappedPersonCachedKey(id);
         const mappedPersonFromCache =
           await this.cacheManagerService.get<MappedPerson>(cacheKey);
@@ -148,7 +143,7 @@ export class PeopleService {
           starship_class: vehicleClass,
         } = response.data;
         const mappedStarship: MappedStarship = {
-          id: this.getIdFromUrl(url),
+          id: getLastParamFromUrl(url),
           name,
           model,
           manufacturer,
@@ -175,8 +170,9 @@ export class PeopleService {
           title,
           release_date: releaseDate,
         } = response.data;
+
         const mappedStarship: MappedFilm = {
-          id: this.getIdFromUrl(swFilmUrl),
+          id: getLastParamFromUrl(swFilmUrl),
           director,
           producer,
           title,
@@ -190,9 +186,5 @@ export class PeopleService {
 
   private getMappedPersonCachedKey(id: string): string {
     return `${MAPPED_PERSON_CACHE_KEY}:${id}`;
-  }
-
-  private getIdFromUrl(url: string): string {
-    return standardizeUrl(url).split('/').pop();
   }
 }

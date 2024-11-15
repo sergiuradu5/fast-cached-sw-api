@@ -4,4 +4,5 @@ export interface MappedFilm {
   producer: string;
   releaseDate: string;
   id: string;
+  image?: string;
 }
