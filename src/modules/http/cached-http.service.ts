@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { parse, stringify } from 'flatted';
 import { CacheManagerService } from '../cache/cache-manager.service';
 
 interface ExtendedAxiosRequestConfig extends AxiosRequestConfig {
@@ -48,12 +49,12 @@ export class CachedHttpService {
     if (useCache) {
       const cacheKey = this.getCacheKey('GET', url, restOfConfig);
       const cachedResponse =
-        await this.cacheManagerService.get<AxiosResponse<T>>(cacheKey);
+        await this.cacheManagerService.get<string>(cacheKey);
       if (cachedResponse) {
-        return cachedResponse;
+        return parse(cachedResponse);
       }
       const response = await this.axiosInstance.get<T>(url, restOfConfig);
-      await this.cacheManagerService.set(cacheKey, response);
+      await this.cacheManagerService.set(cacheKey, stringify(response));
       return response;
     }
     return this.axiosInstance.get<T>(url, restOfConfig);

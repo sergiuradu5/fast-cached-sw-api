@@ -7,7 +7,7 @@ export class CacheManagerService {
   private cacheHitCounter = 0;
   private cacheLookupCounter = 0;
   private logger = new Logger(CacheManagerService.name);
-  constructor(@Inject(CACHE_MANAGER) private readonly cacheManager: Cache) {}
+  constructor(@Inject(CACHE_MANAGER) private readonly cacheManager: Cache) { }
 
   async get<T>(key: string): Promise<T> {
     const awaitedRespose = await this.cacheManager.get<T>(key);

@@ -5,11 +5,12 @@ import { LoggerModule as NestPinoLoggerModule } from 'nestjs-pino';
   imports: [
     NestPinoLoggerModule.forRoot({
       pinoHttp: {
-        level: 'info',
+        level: 'trace',
         transport: {
           targets: [
             {
               target: 'pino-rotating-file-stream',
+              level: 'trace',
               options: {
                 filename: 'app.log',
                 path: './logs',
@@ -20,6 +21,7 @@ import { LoggerModule as NestPinoLoggerModule } from 'nestjs-pino';
             },
             {
               target: 'pino-pretty',
+              level: 'trace',
               options: {
                 colorize: true,
                 ignore: 'pid,hostname,req,res',
@@ -41,4 +43,4 @@ import { LoggerModule as NestPinoLoggerModule } from 'nestjs-pino';
     }),
   ],
 })
-export class LoggerModule {}
+export class LoggerModule { }

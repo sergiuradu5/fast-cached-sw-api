@@ -7,7 +7,7 @@ import { SET_APP_URL } from './setup/global-constants';
 import { convertToLocalhost, initLogsFile, } from './setup/setup';
 async function bootstrap() {
   initLogsFile();
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true, });
   app.enableCors();
   const logger = app.get(Logger)
   app.useLogger(app.get(Logger));

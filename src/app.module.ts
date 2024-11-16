@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -38,7 +38,7 @@ import { StarshipsModule } from './modules/starships/starships.module';
         return req.hostname === 'localhost';
       }
     }]),
-    CacheModule, LoggerModule, HttpModule, PeopleModule, HttpModule, FilmsModule, StarshipsModule],
+    CacheModule, LoggerModule, HttpModule, forwardRef(() => PeopleModule), HttpModule, FilmsModule, StarshipsModule],
   controllers: [],
   providers: [{
     provide: APP_GUARD,

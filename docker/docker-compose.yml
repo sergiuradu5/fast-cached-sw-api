@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7.0.12 # Replace with the latest fixed version from Docker Hub
+    container_name: redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis_data:/data
+    networks:
+      - sw_network
+    command: ['redis-server', '/usr/local/etc/redis/redis.conf']
+    environment:
+      - REDIS_PASSWORD=your_strong_password
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  redis_insight:
+    image: redis/redisinsight:2.60 # Ensure you use the latest version
+    container_name: redis_insight
+    ports:
+      - '5540:5540' # Port for accessing the RedisInsight UI
+    networks:
+      - sw_network
+    environment:
+      - REDISINSIGHT_CONNECTION_NAME=LocalRedis
+      - REDISINSIGHT_HOST=redis
+      - REDISINSIGHT_PORT=6379
+      - REDISINSIGHT_PASSWORD=your_strong_password
+
+volumes:
+  redis_data:
+
+networks:
+  sw_network:
+    driver: bridge
