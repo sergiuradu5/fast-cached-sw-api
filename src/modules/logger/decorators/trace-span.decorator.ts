@@ -5,29 +5,32 @@ import { context, trace } from '@opentelemetry/api';
  * Automatically creates a span with the method name and associates it with a parent span (if available).
  * 
  * @param spanName Optional: A custom span name. Defaults to the method name.
+ * @param attributes Optional: Custom attributes to add to the span.
  */
-export function TraceSpan(spanName?: string): MethodDecorator {
+export function TraceSpan(spanName?: string, attributes?: Record<string, any>): MethodDecorator {
   return function (target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
-      const tracer = trace.getTracer('nestjs-app'); // Replace 'nestjs-app' with your app's tracer name
+      const tracer = trace.getTracer('sw-api');
       const spanNameToUse = spanName || propertyKey.toString();
-
-      // Start a new span, linked to the current context (parent span if present)
       const span = tracer.startSpan(spanNameToUse, undefined, context.active());
 
       try {
-        // Execute the original method within the span's context
+        // Set custom attributes if provided
+        if (attributes) {
+          Object.entries(attributes).forEach(([key, value]) => {
+            span.setAttribute(key, value);
+          });
+        }
+
         return await context.with(trace.setSpan(context.active(), span), async () => {
           return await originalMethod.apply(this, args);
         });
       } catch (error) {
-        // Record any error in the span
         span.recordException(error);
         throw error;
       } finally {
-        // Ensure the span is ended
         span.end();
       }
     };
