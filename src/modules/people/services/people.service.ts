@@ -4,6 +4,8 @@ import { CacheManagerService } from 'src/modules/cache/cache-manager.service';
 import { arrayFromRange } from 'src/modules/common/utils/array-from-range';
 import { getLastParamFromUrl } from 'src/modules/common/utils/get-last-param-from-url';
 import { CachedHttpService } from 'src/modules/http/cached-http.service';
+import { AsyncMethodLogger } from 'src/modules/logger/decorators/async-method-logger.decorator';
+import { TraceSpan } from 'src/modules/logger/decorators/trace-span.decorator';
 import { GET_APP_URL } from 'src/setup/global-constants';
 import { MappedFilm } from '../../films/interfaces/mapped-film.interface';
 import { StarWarsFilm } from '../../films/interfaces/star-wars-film.interface';
@@ -22,6 +24,8 @@ export class PeopleService {
     private readonly cachedHttpService: CachedHttpService,
   ) { }
 
+  @TraceSpan()
+  @AsyncMethodLogger({ logLevel: 'verbose', logMethodArgs: true, logMethodRetunValue: true })
   async getPeople({ search }: { search?: string }): Promise<MappedPerson[]> {
     const swApiFirstPageUrl = new URL('people', process.env.SW_API_BASE_URL);
     if (!isEmpty(search)) {
@@ -82,6 +86,8 @@ export class PeopleService {
     return mappedPeople;
   }
 
+  @TraceSpan()
+  @AsyncMethodLogger({ logLevel: 'verbose', logMethodArgs: true, logMethodRetunValue: true })
   private async mapPeople({
     swPeople,
   }: {

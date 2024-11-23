@@ -1,6 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ClsModule } from 'nestjs-cls';
@@ -8,6 +8,7 @@ import { join } from 'path';
 import { CacheModule } from './modules/cache/cache.module';
 import { FilmsModule } from './modules/films/films.module';
 import { HttpModule } from './modules/http/http.module';
+import { GlobalExceptionsFilter } from './modules/logger/filters/global-exceptions.filter';
 import { LoggerModule } from './modules/logger/logger.module';
 import { PeopleModule } from './modules/people/people.module';
 import { StarshipsModule } from './modules/starships/starships.module';
@@ -43,6 +44,10 @@ import { StarshipsModule } from './modules/starships/starships.module';
   providers: [{
     provide: APP_GUARD,
     useClass: ThrottlerGuard,
+  },
+  {
+    provide: APP_FILTER,
+    useClass: GlobalExceptionsFilter
   }],
 })
 export class AppModule { }
