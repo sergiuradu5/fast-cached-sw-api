@@ -31,17 +31,17 @@ export class HttpCacheInterceptor extends CacheInterceptor {
     try {
       const value = await this.cacheManagerService.get(key);
       if (!isNil(value)) {
-        this.logger.verbose('Cache hit: ' + key);
+        this.logger.verbose({ message: 'Cache hit: ' + key, static: 1 }, "Cache was hit",);
         return of(value);
       }
-      this.logger.verbose('Cache miss: ' + key);
+      this.logger.verbose({ message: 'Cache miss: ' + key, static: 2 }, "Cache missed",);
       const ttl = isFunction(ttlValueOrFactory)
         ? await ttlValueOrFactory(context)
         : ttlValueOrFactory;
       return next.handle().pipe(
         tap(response => {
           const args = isNil(ttl) ? [key, response] : [key, response, { ttl }];
-          this.logger.verbose(`Setting cache: ${key}`);
+          this.logger.verbose({ message: `Setting cache: ${key}`, static: 3 }, "Cache setup");
           this.cacheManagerService.set(key, response, ttl as number ?? undefined);
         }),
       );

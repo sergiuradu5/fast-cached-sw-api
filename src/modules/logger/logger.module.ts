@@ -14,9 +14,21 @@ import { LoggerModule as NestPinoLoggerModule } from 'nestjs-pino';
               options: {
                 filename: 'app.log',
                 path: './logs',
+
                 size: '100M',
                 maxSize: '1G',
                 interval: '1d',
+              },
+            },
+            {
+              target: 'pino-opentelemetry-transport',
+              level: 'trace',
+              options: {
+                resourceAttributes: {
+                  'service.name': 'sw-api',
+                },
+                messageFormat: '[{level}] {req.id} {req.method} {req.url} {res.statusCode} {msg}',
+                messageKey: 'msg',
               },
             },
             {
@@ -34,7 +46,7 @@ import { LoggerModule as NestPinoLoggerModule } from 'nestjs-pino';
                 singleLine: true,
                 errorProps: 'message,stack',
                 customColors:
-                  'err:red,info:green,warn:yellow,debug:blue,trace:gray',
+                  'error:red,info:green,warn:yellow,debug:blue,trace:gray',
               },
             },
           ],

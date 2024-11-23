@@ -5,7 +5,10 @@ import { AddressInfo } from 'net';
 import { AppModule } from './app.module';
 import { SET_APP_URL } from './setup/global-constants';
 import { convertToLocalhost, initLogsFile, } from './setup/setup';
+import tracer from './tracer';
+
 async function bootstrap() {
+  await tracer.start();
   initLogsFile();
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true, });
   app.enableCors();
