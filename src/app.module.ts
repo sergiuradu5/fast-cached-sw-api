@@ -11,6 +11,7 @@ import { HttpModule } from './modules/http/http.module';
 import { GlobalExceptionsFilter } from './modules/logger/filters/global-exceptions.filter';
 import { LoggerModule } from './modules/logger/logger.module';
 import { PeopleModule } from './modules/people/people.module';
+import { RequestCounterModule } from './modules/request-counter/request-counter.module';
 import { StarshipsModule } from './modules/starships/starships.module';
 
 @Module({
@@ -19,8 +20,11 @@ import { StarshipsModule } from './modules/starships/starships.module';
     ClsModule.forRoot({
       middleware: {
         mount: true,
-        setup: (cls, req) => {
+        setup: (cls, req, res) => {
+          cls.set('requestCounter', 0);
         },
+        saveRes: true,
+
       },
     }),
     ServeStaticModule.forRoot({
@@ -39,7 +43,15 @@ import { StarshipsModule } from './modules/starships/starships.module';
         return req.hostname === 'localhost';
       }
     }]),
-    CacheModule, LoggerModule, HttpModule, forwardRef(() => PeopleModule), HttpModule, FilmsModule, StarshipsModule],
+    CacheModule, 
+    LoggerModule, 
+    LoggerModule, 
+    HttpModule, 
+    forwardRef(() => PeopleModule), 
+    HttpModule, 
+    FilmsModule, 
+    StarshipsModule, 
+    RequestCounterModule],
   controllers: [],
   providers: [{
     provide: APP_GUARD,

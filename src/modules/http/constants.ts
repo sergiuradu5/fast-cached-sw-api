@@ -1,0 +1,1 @@
+export const CACHED_HTTP_REQUEST_COUNTER_KEY = 'cached-http-requests-counter';

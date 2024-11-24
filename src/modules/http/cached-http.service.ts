@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { parse, stringify } from 'flatted';
 import { CacheManagerService } from '../cache/cache-manager.service';
+import { CACHED_HTTP_REQUEST_COUNTER_KEY } from './constants';
 
 interface ExtendedAxiosRequestConfig extends AxiosRequestConfig {
   useCache?: boolean;
@@ -47,7 +48,7 @@ export class CachedHttpService {
   ): Promise<AxiosResponse<T>> {
     const { useCache = true, ...restOfConfig } = config;
     if (useCache) {
-      const cacheKey = this.getCacheKey('GET', url, restOfConfig);
+      const cacheKey = this.getCachedHttpRequestKey('GET', url, restOfConfig);
       const cachedResponse =
         await this.cacheManagerService.get<string>(cacheKey);
       if (cachedResponse) {
@@ -86,7 +87,7 @@ export class CachedHttpService {
     return response;
   }
 
-  private getCacheKey(
+  private getCachedHttpRequestKey(
     method: string,
     url: string,
     config?: AxiosRequestConfig,
@@ -94,11 +95,18 @@ export class CachedHttpService {
     return `${method}_${url}_${config ? JSON.stringify(config) : ''}`;
   }
 
+  private getRequestCounterKey(
+  ): string {
+    return CACHED_HTTP_REQUEST_COUNTER_KEY;
+  }
+
   public getFetchCounter(): number {
     return this.fetchCounter;
   }
 
-  public resetFetchCounter(): void {
+  public async resetFetchCounter(): Promise<void> {
+    const requestCounter = await this.cacheManagerService.get<number>(this.getRequestCounterKey());
+    await this.cacheManagerService.set(this.getRequestCounterKey(), requestCounter + this.fetchCounter);
     this.fetchCounter = 0;
   }
 }

@@ -82,7 +82,7 @@ export class PeopleService {
     );
 
     this.cacheManagerService.resetCounters();
-    this.cachedHttpService.resetFetchCounter();
+    await this.cachedHttpService.resetFetchCounter();
     return mappedPeople;
   }
 
