@@ -4,6 +4,8 @@ import { CacheManagerService } from 'src/modules/cache/cache-manager.service';
 import { arrayFromRange } from 'src/modules/common/utils/array-from-range';
 import { getLastParamFromUrl } from 'src/modules/common/utils/get-last-param-from-url';
 import { CachedHttpService } from 'src/modules/http/cached-http.service';
+import { AsyncMethodLogger } from 'src/modules/logger/decorators/async-method-logger.decorator';
+import { TraceSpan } from 'src/modules/logger/decorators/trace-span.decorator';
 import { ApiResponse } from 'src/modules/people/interfaces/api-response.interface';
 import { MappedStarship } from 'src/modules/people/interfaces/mapped-starship.interface';
 import { StarWarsStarship } from 'src/modules/people/interfaces/star-wars-starship.interface';
@@ -108,6 +110,20 @@ export class StarshipsService {
       }),
     );
     return mappedStarships;
+  }
+
+
+  @TraceSpan()
+  @AsyncMethodLogger({ logLevel: 'verbose', logMethodArgs: true, logMethodRetunValue: true })
+  async getStarshipById({ id }: { id: string }): Promise<MappedStarship> {
+    const starshipFromCache = await this.cacheManagerService.get<MappedStarship>(this.getMappedStarshipCachedKey(id));
+    if (!isNil(starshipFromCache)) {
+      return starshipFromCache;
+    }
+    const swApiStarshipUrl = new URL(`starships/${id}`, process.env.SW_API_BASE_URL);
+    const response = await this.cachedHttpService.get<StarWarsStarship>(swApiStarshipUrl.href);
+    const [mappedStarship] = await this.mapStarships({ swStarships: [response.data] });
+    return mappedStarship;
   }
 
   private getMappedStarshipCachedKey(id: string): string {

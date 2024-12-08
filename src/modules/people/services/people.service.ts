@@ -193,4 +193,17 @@ export class PeopleService {
   private getMappedPersonCachedKey(id: string): string {
     return `${MAPPED_PERSON_CACHE_KEY}:${id}`;
   }
+
+  @TraceSpan()
+  @AsyncMethodLogger({ logLevel: 'verbose', logMethodArgs: true, logMethodRetunValue: true })
+  async getPersonById({ id }: { id: string }): Promise<MappedPerson> {
+    const personFromCache = await this.cacheManagerService.get<MappedPerson>(this.getMappedPersonCachedKey(id));
+    if (!isNil(personFromCache)) {
+      return personFromCache;
+    }
+    const swApiPersonUrl = new URL(`people/${id}`, process.env.SW_API_BASE_URL);
+    const response = await this.cachedHttpService.get<StarWarsPerson>(swApiPersonUrl.href);
+    const [mappedPerson] = await this.mapPeople({ swPeople: [response.data] });
+    return mappedPerson;
+  }
 }

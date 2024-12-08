@@ -9,6 +9,8 @@ import { CachedHttpService } from "src/modules/http/cached-http.service";
 import { ApiResponse } from "src/modules/people/interfaces/api-response.interface";
 import { GET_APP_URL } from "src/setup/global-constants";
 import { MAPPED_FILM_CACHE_KEY } from "../constants/films-cache-keys.constants";
+import { AsyncMethodLogger } from "src/modules/logger/decorators/async-method-logger.decorator";
+import { TraceSpan } from "src/modules/logger/decorators/trace-span.decorator";
 
 @Injectable()
 export class FilmsService {
@@ -113,7 +115,22 @@ export class FilmsService {
     );
     return mappedFilms;
   }
-  getMappedFilmCachedKey(id: any) {
+
+
+  @TraceSpan()
+  @AsyncMethodLogger({ logLevel: 'verbose', logMethodArgs: true, logMethodRetunValue: true })
+  async getFilmById({ id }: { id: string }): Promise<MappedFilm> {
+    const cachedFilm = await this.cacheManagerService.get<MappedFilm>(this.getMappedFilmCachedKey(id));
+    if (!isNil(cachedFilm)) {
+      return cachedFilm;
+    }
+    const swApiFilmUrl = new URL(`films/${id}`, process.env.SW_API_BASE_URL);
+    const response = await this.cachedHttpService.get<StarWarsFilm>(swApiFilmUrl.href);
+    const [mappedFilm] = await this.mapFilms({ swFilms: [response.data] });
+    return mappedFilm;
+  }
+
+  private getMappedFilmCachedKey(id: any) {
     return `${MAPPED_FILM_CACHE_KEY}:${id}`;
   }
 }

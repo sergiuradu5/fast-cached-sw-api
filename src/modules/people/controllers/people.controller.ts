@@ -1,6 +1,7 @@
 import { CacheTTL } from '@nestjs/cache-manager';
-import { Controller, Get, Header, Query, UseInterceptors, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Header, Param, Query, UseInterceptors } from '@nestjs/common';
 import { HttpCacheInterceptor } from 'src/modules/cache/interceptors/http-cache.interceptor';
+import { GetItemByIdRequestParamDto } from 'src/modules/common/dto/get-item-by-id-request-param.dto';
 import { GetPeopleRequestQueryDto } from '../dtos/get-people-request.dto';
 import { PeopleService } from '../services/people.service';
 
@@ -10,14 +11,21 @@ export class PeopleController {
 
   @Get()
   @Header('Cache-Control', 'max-age=60')
-  // NOTE: use @UseInterceptors(CacheInterceptor) and @CacheTTL() if you want to cache the response
-  // If you want to see how the internal caching system works, leave @UseInterceptors(HttpCacheInterceptor) commented out
   @UseInterceptors(HttpCacheInterceptor)
   @CacheTTL(60 * 1000)
   async getPeople(
-    @Query(new ValidationPipe()) query: GetPeopleRequestQueryDto,
+    @Query() query: GetPeopleRequestQueryDto,
   ) {
-    // await new Promise(resolve => setTimeout(resolve, 1000));
     return this.peopleService.getPeople({ search: query.search });
+  }
+
+  @Get(':id')
+  @Header('Cache-Control', 'max-age=60')
+  @UseInterceptors(HttpCacheInterceptor)
+  @CacheTTL(60 * 1000)
+  async getPersonById(
+    @Param() { id }: GetItemByIdRequestParamDto,
+  ) {
+    return this.peopleService.getPersonById({ id });
   }
 }

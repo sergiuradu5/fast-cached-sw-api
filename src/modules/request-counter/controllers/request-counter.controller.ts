@@ -10,7 +10,7 @@ export class RequestCounterController {
   async getRequestCounter(): Promise<any> {
     const count = await this.requestCounterService.getRequestCounter();
     return {
-      count: count ?? null,
+      count: count ?? 0,
     }
   }
 }

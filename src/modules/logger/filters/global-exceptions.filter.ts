@@ -26,15 +26,14 @@ export class GlobalExceptionsFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const responseBody = {
-      statusCode: httpStatus,
-      message: exception['message'],
-      timestamp: new Date().toISOString(),
-      path: httpAdapter.getRequestUrl(ctx.getRequest()),
-    };
+    const responseBody = exception instanceof HttpException
+      ? exception?.getResponse() : {
+        statusCode: httpStatus,
+        message: exception['message'],
+      };
 
     const span = trace.getActiveSpan();
-    
+
     // recordException converts the error into a span event. 
     span.recordException(exception as Exception);
     // Update the span status to failed.

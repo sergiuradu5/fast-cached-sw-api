@@ -8,11 +8,11 @@ import { join } from 'path';
 import { CacheModule } from './modules/cache/cache.module';
 import { FilmsModule } from './modules/films/films.module';
 import { HttpModule } from './modules/http/http.module';
-import { GlobalExceptionsFilter } from './modules/logger/filters/global-exceptions.filter';
 import { LoggerModule } from './modules/logger/logger.module';
 import { PeopleModule } from './modules/people/people.module';
 import { RequestCounterModule } from './modules/request-counter/request-counter.module';
 import { StarshipsModule } from './modules/starships/starships.module';
+import { GlobalExceptionsFilter } from './modules/logger/filters/global-exceptions.filter';
 
 @Module({
   imports: [
@@ -43,14 +43,14 @@ import { StarshipsModule } from './modules/starships/starships.module';
         return req.hostname === 'localhost';
       }
     }]),
-    CacheModule, 
-    LoggerModule, 
-    LoggerModule, 
-    HttpModule, 
-    forwardRef(() => PeopleModule), 
-    HttpModule, 
-    FilmsModule, 
-    StarshipsModule, 
+    CacheModule,
+    LoggerModule,
+    LoggerModule,
+    HttpModule,
+    forwardRef(() => PeopleModule),
+    HttpModule,
+    FilmsModule,
+    StarshipsModule,
     RequestCounterModule],
   controllers: [],
   providers: [{
@@ -60,6 +60,7 @@ import { StarshipsModule } from './modules/starships/starships.module';
   {
     provide: APP_FILTER,
     useClass: GlobalExceptionsFilter
-  }],
+  }
+  ],
 })
 export class AppModule { }
